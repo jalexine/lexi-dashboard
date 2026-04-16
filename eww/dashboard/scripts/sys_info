@@ -31,7 +31,7 @@ get_cpu() {
 		let "DIFF_USAGE=(1000*($DIFF_TOTAL-$DIFF_IDLE)/$DIFF_TOTAL+5)/10"
 		echo "${DIFF_USAGE}"
 	else
-		echo "?"
+		echo "0"
 	fi
 
 	# Remember the total and idle CPU times for the next check.
@@ -46,18 +46,7 @@ get_mem() {
 
 ## Get Brightness
 get_blight() {
-	CARD=`ls /sys/class/backlight | head -n 1`
-
-	if [[ "$CARD" == *"intel_"* ]]; then
-		BNESS=`xbacklight -get`
-		LIGHT=${BNESS%.*}
-	else
-		BNESS=`blight -d $CARD get brightness`
-		PERC="$(($BNESS*100/255))"
-		LIGHT=${PERC%.*}
-	fi
-
-	echo "$LIGHT"
+	brightnessctl -m -c backlight | cut -d, -f4 | tr -d '%'
 }
 
 ## Get Battery 

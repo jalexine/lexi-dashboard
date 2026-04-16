@@ -1,0 +1,28 @@
+#!/bin/sh
+
+CACHE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/eww/artic_art/art.json"
+
+if [ ! -f "$CACHE_FILE" ]; then
+    exit 1
+fi
+
+page="$(jq -r '.artworks[.current_index].page // empty' "$CACHE_FILE" 2>/dev/null)"
+[ -n "$page" ] || exit 1
+
+if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$page" >/dev/null 2>&1 && exit 0
+fi
+
+if command -v gio >/dev/null 2>&1; then
+    gio open "$page" >/dev/null 2>&1 && exit 0
+fi
+
+if command -v brave >/dev/null 2>&1; then
+    brave "$page" >/dev/null 2>&1 & exit 0
+fi
+
+if command -v firefox >/dev/null 2>&1; then
+    firefox "$page" >/dev/null 2>&1 & exit 0
+fi
+
+exit 1

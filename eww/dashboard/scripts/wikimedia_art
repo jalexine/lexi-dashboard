@@ -1,0 +1,285 @@
+#!/usr/bin/env python3
+
+import datetime as dt
+import hashlib
+import html
+import json
+import random
+import re
+import sys
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+
+API_URL = "https://commons.wikimedia.org/w/api.php"
+CACHE_DIR = Path.home() / ".cache" / "eww" / "wikimedia_art"
+STATE_FILE = CACHE_DIR / "art.json"
+DEFAULT_IMAGE = str(Path.home() / ".config" / "eww" / "dashboard" / "images" / "music.png")
+
+ROOT_CATEGORY = "Category:Featured pictures of paintings"
+FALLBACK_CATEGORIES = [
+    "Category:Featured pictures from the Google Art Project",
+    "Category:Featured pictures of the arts",
+]
+POOL_SIZE = 10
+
+DEFAULT_ART = {
+    "image": DEFAULT_IMAGE,
+    "title": "Artwork of the day",
+    "artist": "Wikimedia Commons",
+    "year": "",
+    "page": "https://commons.wikimedia.org/wiki/Category:Featured_pictures_of_paintings",
+    "source_title": "",
+}
+
+DEFAULT_STATE = {
+    "date": "",
+    "current_index": 0,
+    "artworks": [DEFAULT_ART],
+}
+
+
+def request_json(params):
+    query = urllib.parse.urlencode(params)
+    req = urllib.request.Request(
+        f"{API_URL}?{query}",
+        headers={"User-Agent": "eww-wikimedia-art/1.0"},
+    )
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        return json.load(resp)
+
+
+def download_file(url, target):
+    req = urllib.request.Request(url, headers={"User-Agent": "eww-wikimedia-art/1.0"})
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        target.write_bytes(resp.read())
+
+
+def strip_html(text):
+    text = html.unescape(text or "")
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def extract_year(*values):
+    for value in values:
+        text = strip_html(value)
+        if not text:
+            continue
+        match = re.search(r"\b(1[0-9]{3}|20[0-9]{2})\b", text)
+        if match:
+            return match.group(1)
+    return ""
+
+
+def image_path_for_title(title):
+    digest = hashlib.sha1(title.encode("utf-8")).hexdigest()[:16]
+    return CACHE_DIR / f"art_{digest}.jpg"
+
+
+def category_members(title, member_type):
+    data = request_json(
+        {
+            "action": "query",
+            "format": "json",
+            "list": "categorymembers",
+            "cmtitle": title,
+            "cmtype": member_type,
+            "cmlimit": "max",
+        }
+    )
+    return data.get("query", {}).get("categorymembers", [])
+
+
+def resolve_file_candidates():
+    subcats = category_members(ROOT_CATEGORY, "subcat")
+    categories = [c["title"] for c in subcats] + FALLBACK_CATEGORIES
+    if not categories:
+        return []
+
+    day_seed = dt.date.today().toordinal()
+    ordered = categories[day_seed % len(categories) :] + categories[: day_seed % len(categories)]
+    all_files = []
+    seen = set()
+
+    for category in ordered:
+        files = category_members(category, "file")
+        for item in files:
+            title = item.get("title")
+            if not title or title in seen:
+                continue
+            seen.add(title)
+            all_files.append(item)
+        if len(all_files) >= 300:
+            break
+
+    return all_files
+
+
+def fetch_file_info(title):
+    data = request_json(
+        {
+            "action": "query",
+            "format": "json",
+            "prop": "imageinfo",
+            "titles": title,
+            "iiprop": "url|extmetadata",
+            "iiurlwidth": "1400",
+        }
+    )
+    pages = data.get("query", {}).get("pages", {})
+    page = next(iter(pages.values()), {})
+    imageinfo = (page.get("imageinfo") or [{}])[0]
+    metadata = imageinfo.get("extmetadata") or {}
+
+    title_text = strip_html(metadata.get("ObjectName", {}).get("value")) or title.replace("File:", "")
+    artist_text = strip_html(metadata.get("Artist", {}).get("value")) or "Unknown artist"
+    year_text = extract_year(
+        metadata.get("Date", {}).get("value"),
+        metadata.get("DateTimeOriginal", {}).get("value"),
+    )
+
+    return {
+        "url": imageinfo.get("thumburl") or imageinfo.get("url"),
+        "title": title_text,
+        "artist": artist_text,
+        "year": year_text,
+        "page": f"https://commons.wikimedia.org/wiki/{urllib.parse.quote(title.replace(' ', '_'))}",
+        "source_title": title,
+    }
+
+
+def load_state():
+    if not STATE_FILE.exists():
+        return DEFAULT_STATE.copy()
+    try:
+        data = json.loads(STATE_FILE.read_text())
+        # Migrate legacy single-artwork cache into the pooled format.
+        if "artworks" not in data:
+            legacy_art = {
+                "image": data.get("image", DEFAULT_ART["image"]),
+                "title": data.get("title", DEFAULT_ART["title"]),
+                "artist": data.get("artist", DEFAULT_ART["artist"]),
+                "year": data.get("year", ""),
+                "page": data.get("page", DEFAULT_ART["page"]),
+                "source_title": data.get("source_title", ""),
+            }
+            data = {
+                "date": data.get("date", ""),
+                "current_index": 0,
+                "artworks": [legacy_art],
+            }
+            save_state(data)
+        if not data.get("artworks"):
+            data["artworks"] = [DEFAULT_ART]
+        if data.get("current_index") is None:
+            data["current_index"] = 0
+        data.setdefault("date", "")
+        return data
+    except Exception:
+        return DEFAULT_STATE.copy()
+
+
+def save_state(state):
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    STATE_FILE.write_text(json.dumps(state))
+
+
+def current_artwork(state):
+    artworks = state.get("artworks") or [DEFAULT_ART]
+    index = max(0, min(state.get("current_index", 0), len(artworks) - 1))
+    return {**DEFAULT_ART, **artworks[index]}
+
+
+def build_daily_pool():
+    files = resolve_file_candidates()
+    if not files:
+        return load_state()
+
+    sample_size = min(POOL_SIZE, len(files))
+    selected = random.sample(files, sample_size)
+    artworks = []
+
+    for item in selected:
+        chosen = item["title"]
+        try:
+            info = fetch_file_info(chosen)
+            image_path = image_path_for_title(chosen)
+            if info.get("url"):
+                CACHE_DIR.mkdir(parents=True, exist_ok=True)
+                download_file(info["url"], image_path)
+
+            artworks.append(
+                {
+                    "image": str(image_path if image_path.exists() else DEFAULT_IMAGE),
+                    "title": info.get("title") or DEFAULT_ART["title"],
+                    "artist": info.get("artist") or DEFAULT_ART["artist"],
+                    "year": info.get("year") or "",
+                    "page": info.get("page") or DEFAULT_ART["page"],
+                    "source_title": info.get("source_title") or chosen,
+                }
+            )
+        except Exception:
+            continue
+
+    if not artworks:
+        artworks = [DEFAULT_ART]
+
+    state = {
+        "date": dt.date.today().isoformat(),
+        "current_index": 0,
+        "artworks": artworks,
+    }
+    save_state(state)
+    return state
+
+
+def ensure_state():
+    state = load_state()
+    if state.get("date") == dt.date.today().isoformat() and state.get("artworks"):
+        return state
+    return build_daily_pool()
+
+
+def next_artwork():
+    state = ensure_state()
+    artworks = state.get("artworks") or [DEFAULT_ART]
+    if len(artworks) > 1:
+        state["current_index"] = (state.get("current_index", 0) + 1) % len(artworks)
+        save_state(state)
+    return state
+
+
+def rebuild_pool():
+    return build_daily_pool()
+
+
+def main():
+    if "--next" in sys.argv:
+        state = next_artwork()
+    elif "--refresh" in sys.argv:
+        state = rebuild_pool()
+    else:
+        state = ensure_state()
+
+    art = current_artwork(state)
+    if "--image" in sys.argv:
+        print(art.get("image", DEFAULT_IMAGE))
+    elif "--title" in sys.argv:
+        print(art.get("title", DEFAULT_ART["title"]))
+    elif "--artist" in sys.argv:
+        print(art.get("artist", DEFAULT_ART["artist"]))
+    elif "--year" in sys.argv:
+        print(art.get("year", ""))
+    elif "--page" in sys.argv:
+        print(art.get("page", DEFAULT_ART["page"]))
+    elif "--refresh" in sys.argv or "--next" in sys.argv:
+        print("ok")
+    else:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

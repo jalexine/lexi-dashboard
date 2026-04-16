@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+action="${1:-}"
+log_file="${XDG_CACHE_HOME:-$HOME/.cache}/eww_dashboard_power.log"
+
+log() {
+	printf '%s action=%s session=%s desktop=%s\n' \
+		"$(date '+%Y-%m-%d %H:%M:%S')" \
+		"${action:-unknown}" \
+		"${XDG_SESSION_ID:-unknown}" \
+		"${DESKTOP_SESSION:-unknown}" >> "$log_file"
+}
+
+logout_session() {
+	if command -v uwsm >/dev/null 2>&1; then
+		exec uwsm stop
+	fi
+
+	if [[ -n "${XDG_SESSION_ID:-}" ]]; then
+		exec loginctl terminate-session "$XDG_SESSION_ID"
+	fi
+
+	exec hyprctl dispatch exit
+}
+
+log
+
+case "$action" in
+	logout)
+		logout_session
+		;;
+	sleep)
+		exec systemctl suspend
+		;;
+	reboot)
+		exec systemctl reboot
+		;;
+	poweroff)
+		exec systemctl poweroff
+		;;
+	*)
+		printf 'Unknown action: %s\n' "$action" >&2
+		exit 1
+		;;
+esac

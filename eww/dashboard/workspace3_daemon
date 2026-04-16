@@ -1,0 +1,45 @@
+#!/bin/sh
+
+TARGET_WORKSPACE=3
+STATE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/eww_launch.dashboard"
+LAUNCHER="$HOME/.config/eww/dashboard/launch_dashboard"
+
+current_workspace() {
+    hyprctl activeworkspace 2>/dev/null | awk '/workspace ID/ { print $3; exit }'
+}
+
+open_dashboard() {
+    [ -f "$STATE_FILE" ] || "$LAUNCHER"
+}
+
+close_dashboard() {
+    [ -f "$STATE_FILE" ] && "$LAUNCHER"
+}
+
+sync_dashboard() {
+    workspace_id="$(current_workspace)"
+    [ -n "$workspace_id" ] || return 0
+
+    if [ "$workspace_id" = "$TARGET_WORKSPACE" ]; then
+        open_dashboard
+    else
+        close_dashboard
+    fi
+}
+
+last_workspace=""
+sync_dashboard
+
+while sleep 0.5; do
+    workspace_id="$(current_workspace)"
+    [ -n "$workspace_id" ] || continue
+    [ "$workspace_id" = "$last_workspace" ] && continue
+
+    if [ "$workspace_id" = "$TARGET_WORKSPACE" ]; then
+        open_dashboard
+    else
+        close_dashboard
+    fi
+
+    last_workspace="$workspace_id"
+done

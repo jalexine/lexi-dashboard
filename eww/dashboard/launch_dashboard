@@ -1,46 +1,67 @@
 #!/bin/bash
 
-## Files and cmd
 FILE="$HOME/.cache/eww_launch.dashboard"
 CFG="$HOME/.config/eww/dashboard"
-EWW=`which eww`
+EWW="$(command -v eww)"
+OPEN_WINDOWS=(
+	profile
+	system
+	clock
+	music
+	github
+	reddit
+	twitter
+	youtube
+	weather
+	hackernews
+	logout
+	sleep
+	reboot
+	poweroff
+	folders
+)
 
-## Run eww daemon if not running already
-if [[ ! `pidof eww` ]]; then
-	${EWW} daemon
-	sleep 1
-fi
+CLOSE_WINDOWS=(
+	"${OPEN_WINDOWS[@]}"
+)
 
-## Open widgets 
-run_eww() {
-	${EWW} --config "$CFG" open-many \
-		   background \
-		   profile \
-		   system \
-		   clock \
-		   uptime \
-		   music \
-		   github \
-		   reddit \
-		   twitter \
-		   youtube \
-		   weather \
-		   apps \
-		   mail \
-		   logout \
-		   sleep \
-		   reboot \
-		   poweroff \
-		   folders
+ensure_daemon() {
+	if ! "${EWW}" --config "$CFG" ping >/dev/null 2>&1; then
+		"${EWW}" --config "$CFG" daemon
+		sleep 1
+	fi
 }
 
-## Launch or close widgets accordingly
+open_dashboard() {
+	"${EWW}" --config "$CFG" open-many "${OPEN_WINDOWS[@]}"
+}
+
+close_dashboard() {
+	mapfile -t open_windows < <(
+		"${EWW}" --config "$CFG" active-windows 2>/dev/null | sed 's/^[^:]*: //'
+	)
+
+	to_close=()
+	for window in "${CLOSE_WINDOWS[@]}"; do
+		for open_window in "${open_windows[@]}"; do
+			if [[ "$window" == "$open_window" ]]; then
+				to_close+=("$window")
+				break
+			fi
+		done
+	done
+
+	if [[ ${#to_close[@]} -gt 0 ]]; then
+		"${EWW}" --config "$CFG" close "${to_close[@]}"
+	fi
+}
+
+ensure_daemon
+
 if [[ ! -f "$FILE" ]]; then
 	touch "$FILE"
-	run_eww
+	open_dashboard
 else
-	${EWW} --config "$CFG" close \
-					background profile system clock uptime music github \
-					reddit twitter youtube weather apps mail logout sleep reboot poweroff folders
-	rm "$FILE"
+	close_dashboard
+	rm -f "$FILE"
 fi

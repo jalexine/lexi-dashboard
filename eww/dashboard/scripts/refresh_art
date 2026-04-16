@@ -1,0 +1,5 @@
+#!/bin/sh
+
+CFG="$HOME/.config/eww/dashboard"
+
+"$CFG/scripts/artic_art" --next >/dev/null 2>&1

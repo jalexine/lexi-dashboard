@@ -1,377 +1,457 @@
 /** Global *******************************************/
 *{
 	all: unset;
-	font-family: feather;
-	font-family: Iosevka;
+	font-family: "Roboto Mono", "Iosevka", monospace;
 }
 
 /** Background ***************************************/
 .bg {
-	background-image: url("images/bg.png");
-	background-color: #474D59;
-	opacity: 1;
+	background-image: none;
+	background-color: transparent;
+	opacity: 0;
 }
 
 /** Generic window ***********************************/
 .genwin {
-	background-color: #2E3440;
-	border-radius: 16px;
+	background-color: rgba(0, 0, 0, 0.62);
+	border: 1px solid rgba(233, 63, 119, 0.75);
+	border-radius: 12px;
 }
 
 /** Profile ******************************************/
+.profile_box {
+	padding: 0 12px 8px 12px;
+}
+
 .face {
-	background-size: 200px;
-	min-height: 200px;
-	min-width: 200px;
-	margin: 65px 0px 0px 0px;
-	border-radius: 100%;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
+	min-height: 188px;
+	min-width: 300px;
+	margin: 18px 0px 0px 0px;
+	border-radius: 10px;
 }
 
 .fullname {
-	color: #D46389;
-	font-size : 30px;
+	color: #ff78a6;
+	font-size : 28px;
 	font-weight : bold;
-}
-
-.username {
-	color: #8FBCBB;
-	font-size : 22px;
-	font-weight : bold;
-	margin : -15px 0px 0px 0px;
+	margin: 2px 0 -4px 0;
 }
 
 /** System ********************************************/
+.system_box {
+	padding: 28px 14px 0 14px;
+}
+
+.system_label {
+	color: #ff78a6;
+	font-size: 16px;
+	font-weight: bold;
+	letter-spacing: 2px;
+	margin: 0 0 2px 0;
+}
+
+.metric_card {
+	background-color: rgba(255, 255, 255, 0.05);
+	border-radius: 10px;
+	padding: 8px 10px 6px 10px;
+	min-height: 58px;
+}
+
+.metric_name {
+	color: #fff2f7;
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.metric_value {
+	color: #ff9fc0;
+	font-size: 13px;
+	font-weight: bold;
+}
+
 .iconcpu, .iconmem, .iconbright, .iconbat {
-	font-size : 32px;
+	font-size : 22px;
 	font-weight : normal;
 }
 .iconcpu {
-	color: #BF616A;
+	color: #ff709b;
 }
 .iconmem {
-	color: #A3BE8C;
+	color: #ffd0de;
 }
 .iconbright {
-	color: #EBCB8B;
+	color: #ff9fc0;
 }
 .iconbat {
-	color: #88C0D0;
+	color: #ffc1d5;
 }
 
-.cpu_bar, .mem_bar, .bright_bar, .bat_bar, scale trough {
+.metric_bar scale trough {
 	all: unset;
-	background-color: #3A404C;
-	border-radius: 16px;
-	min-height: 28px;
-	min-width: 240px;
+	background-color: rgba(255, 255, 255, 0.08);
+	border-radius: 8px;
+	min-height: 12px;
+	min-width: 220px;
 }
 
-.cpu_bar, .mem_bar, .bright_bar, .bat_bar, scale trough highlight {
+.metric_bar scale trough highlight {
 	all: unset;
-	border-radius: 16px;
+	border-radius: 8px;
 }
 
 .cpu_bar scale trough highlight {
-	background-color: #BF616A;
+	background-color: #e93f77;
 }
 .mem_bar scale trough highlight {
-	background-color: #A3BE8C;
+	background-color: #e93f77;
 }
 .bright_bar scale trough highlight {
-	background-color: #EBCB8B;
+	background-color: #e93f77;
 }
 .bat_bar scale trough highlight {
-	background-color: #88C0D0;
+	background-color: #e93f77;
 }
 
 /** Clock ********************************************/
-.time_hour, .time_min {
-	color: #81A1C1;
-	font-size : 70px;
+.clock_box {
+	padding: 10px 56px 62px 56px;
+}
+
+.time_hour, .time_min, .time_sep {
+	color: #fff2f7;
+	font-family: "Iosevka Nerd Font", monospace;
+	font-size : 72px;
 	font-weight : bold;
 }
 .time_hour {
-	margin : 15px 0px 0px 20px;
+	margin : 0;
+}
+.time_sep {
+	margin : 0;
 }
 .time_min {
-	margin : 0px 0px 10px 0px;
+	margin : 0;
 }
 
 .time_mer {
-	color: #A3BE8C;
-	font-size : 40px;
+	color: #ff78a6;
+	font-size : 24px;
 	font-weight : bold;
-	margin : 20px 0px 0px 0px;
+	margin : 4px 0 0 0;
 }
 
 .time_day {
-	color: #EBCB8B;
-	font-size : 30px;
+	color: #f6d5df;
+	font-size : 24px;
 	font-weight : normal;
-	margin : 0px 0px 20px -20px;
+	margin : 4px 0 0 0;
 }
 
 /** Uptime ********************************************/
-.icontimer {
-	color: #B48EAD;
-	font-size : 90px;
+.iconpc {
+	color: #ff78a6;
+	font-size : 40px;
 	font-weight : normal;
+	margin: 0 26px 0 -10px;
 }
 
 .uphour {
-	color: #E5E9F0;
-	font-size : 42px;
+	color: #fff2f7;
+	font-size : 26px;
 	font-weight : bold;
+	margin-top: 10px;
 }
 
 .upmin {
-	color: #E5E9F0;
-	font-size : 32px;
-	font-weight : bold;
+	color: #f6d5df;
+	font-size : 20px;
+	font-weight : normal;
+}
+
+.uptime_inline {
+	margin-top: 34px;
+	padding-left: 0;
 }
 
 /** Music ***************************************/
 .album_art {
 	background-size: 240px;
-	min-height: 240px;
-	min-width: 240px;
-	margin: 20px;
-	border-radius: 14px;
+	min-height: 220px;
+	min-width: 220px;
+	margin: 18px;
+	border-radius: 10px;
 }
 
 .song {
-	color: #8FBCBB;
-	font-size : 24px;
+	color: #fff2f7;
+	font-size : 22px;
 	font-weight : bold;
-	margin : 40px 0px 0px 0px;
+	margin : 28px 0px 0px 0px;
 }
 
 .artist {
-	color: #EBCB8B;
+	color: #ff9fc0;
 	font-size : 16px;
 	font-weight : normal;
-	margin : 0px 0px 15px 0px;
+	margin : 0px 0px 10px 0px;
 }
 
 .btn_prev, .btn_play, .btn_next {
-	font-family: Iosevka Nerd Font;
+	font-family: "Iosevka Nerd Font", "Roboto Mono", monospace;
 }
 .btn_prev {
-	color: #EBCB8B;
-	font-size : 32px;
+	color: #f6d5df;
+	font-size : 28px;
 	font-weight : normal;
 }
 .btn_play {
-	color: #A3BE8C;
-	font-size : 48px;
+	color: #ff78a6;
+	font-size : 42px;
 	font-weight : bold;
 }
 .btn_next {
-	color: #EBCB8B;
-	font-size : 32px;
+	color: #f6d5df;
+	font-size : 28px;
 	font-weight : normal;
 }
 
 .music_bar scale trough highlight {
 	all: unset;
-	background-color: #B48EAD;
+	background-color: #e93f77;
 	border-radius: 8px;
 }
 .music_bar scale trough {
 	all: unset;
-	background-color: #3A404C;
+	background-color: rgba(255, 255, 255, 0.08);
 	border-radius: 8px;
-	min-height: 20px;
+	min-height: 16px;
 	min-width: 310px;
-	margin : 10px 0px 0px 0px;
+	margin : 8px 0px 0px 0px;
 }
 
-/** Weather ***************************************/
-.iconweather {
-	font-family: Iosevka Nerd Font;
-	font-size : 120px;
-	font-weight : normal;
-	margin : 15px 0px 0px 30px;
+/** Art *********************************************/
+.art_box {
+	padding: 8px 8px 4px 34px;
 }
 
-.label_temp {
-	color : #A6D1DD;
-	font-size : 80px;
+.art_image_button {
+	padding: 0;
+}
+
+.art_image {
+	background-color: rgba(255, 255, 255, 0.04);
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
+	min-width: 522px;
+	min-height: 224px;
+	border-radius: 8px;
+}
+
+.art_meta {
+	margin-top: 24px;
+}
+
+.art_title {
+	color : #fff2f7;
+	font-size : 20px;
 	font-weight : bold;
-	margin : -15px 30px 0px 0px;
 }
 
-.label_stat {
-	color : #BF616A;
-	font-size : 38px;
-	font-weight : bold;
-}
-
-.label_quote {
-	color : #E5E5E5;
-	font-size : 18px;
+.art_artist {
+	color : #ff9fc0;
+	font-size : 16px;
 	font-weight : normal;
 }
 
-/** Applications ***************************************/
-.appbox {
-	margin : 15px 0px 0px 25px;
+.art_year {
+	color : #f6d5df;
+	font-size : 16px;
+	font-weight : normal;
 }
 
-.app_fox, .app_telegram, .app_discord, .app_terminal,
-.app_files, .app_geany, .app_code, .app_gimp, .app_vbox {
-    background-repeat: no-repeat;
-	background-size: 64px;
-	min-height: 64px;
-	min-width: 64px;
-	margin: 8px 8px 0px 8px;
+.art_footer {
+	min-width: 522px;
 }
 
-.app_fox {}
-.app_telegram {}
-.app_discord {}
-.app_terminal {}
-.app_files {}
-.app_geany {}
-.app_code {}
-.app_gimp {}
-.app_vbox {}
+.art_credit {
+	padding-right: 12px;
+}
+
+.art_refresh {
+	color: #ff78a6;
+	font-family: "Iosevka Nerd Font", monospace;
+	font-size: 18px;
+	font-weight: bold;
+	padding: 0 0 0 12px;
+}
+
+/** Hacker News ***************************************/
+.hn_box {
+	padding: 26px 12px 0 12px;
+}
+
+.hn_label {
+	color: #ff78a6;
+	font-size: 19px;
+	font-weight: bold;
+	letter-spacing: 2px;
+}
+
+.hn_refresh {
+	color: #ff78a6;
+	font-family: "Iosevka Nerd Font", monospace;
+	font-size: 21px;
+	font-weight: bold;
+}
+
+.hn_item {
+	background-color: rgba(255, 255, 255, 0.05);
+	border-radius: 10px;
+	padding: 9px 10px;
+	min-height: 52px;
+}
+
+.hn_rank {
+	color: #ff78a6;
+	font-family: "Iosevka Nerd Font", monospace;
+	font-size: 16px;
+	font-weight: bold;
+	min-width: 20px;
+}
+
+.hn_title {
+	color: #fff2f7;
+	font-size: 17px;
+	font-weight: bold;
+}
 
 /** Links ***************************************/
 .iconweb, .iconmail {
-	color: #FFFFFF;
-	font-family: Iosevka Nerd Font;
-	font-size : 70px;
+	color: #fff2f7;
+	font-family: "Iosevka Nerd Font", "Roboto Mono", monospace;
+	font-size : 62px;
 	font-weight : normal;
 }
 .iconmail {
-	color: #DF584E;
+	color: #ff78a6;
 }
 
 .github {
-	background-color: #24292E;
-	border-radius: 16px;
+	background-color: rgba(0, 0, 0, 0.62);
+	border: 1px solid rgba(233, 63, 119, 0.75);
+	border-radius: 12px;
 }
 .reddit {
-	background-color: #E46231;
-	border-radius: 16px;
+	background-color: rgba(0, 0, 0, 0.62);
+	border: 1px solid rgba(233, 63, 119, 0.75);
+	border-radius: 12px;
 }
 .twitter {
-	background-color: #61AAD6;
-	border-radius: 16px;
+	background-color: rgba(0, 0, 0, 0.62);
+	border: 1px solid rgba(233, 63, 119, 0.75);
+	border-radius: 12px;
 }
 .youtube {
-	background-color: #DF584E;
-	border-radius: 16px;
+	background-color: rgba(0, 0, 0, 0.62);
+	border: 1px solid rgba(233, 63, 119, 0.75);
+	border-radius: 12px;
 }
-.mail {
-	background-color: #FFFFFF;
-	border-radius: 16px;
-}
-
-.mailbox {
-	background-color: #E5E5E5;
-	border-radius: 10px;
-	margin: 48px 0px 48px 0px;
-}
-.label_mails {
-	color: #404040;
-	font-size : 32px;
-	font-weight : bold;
-	margin: 0px 12px 0px 12px;
-}
-
 /** Power buttons ***************************************/
 .btn_logout, .btn_sleep, .btn_reboot, .btn_poweroff {
-	font-size : 48px;
+	font-family: "Iosevka Nerd Font", "Roboto Mono", monospace;
+	font-size : 52px;
 	font-weight : bold;
 }
 
 .btn_logout {
-	color: #BF616A;
+	color: #ff78a6;
 }
 .btn_sleep {
-	color: #A3BE8C;
+	color: #f6d5df;
 }
 .btn_reboot {
-	color: #EBCB8B;
+	color: #ff9fc0;
 }
 .btn_poweroff {
-	color: #88C0D0;
+	color: #ffc9da;
 }
 
 /** Home folders ***************************************/
 .hddbox {
-	background-color: #3A404C;
+	background-color: rgba(255, 255, 255, 0.06);
 	border-radius: 10px;
-	margin : 15px;
+	margin : 12px;
 }
 .hddicon {
-	color: #81A1C1;
-	font-family: Iosevka Nerd Font;
-	font-size : 70px;
+	color: #ff78a6;
+	font-family: "Iosevka Nerd Font", "Roboto Mono", monospace;
+	font-size : 62px;
 	font-weight : normal;
-	margin : 25px 20px 25px 40px;
+	margin : 18px 18px 18px 28px;
 }
 .hdd_label {
-	color: #E5E9F0;
-	font-size : 48px;
+	color: #fff2f7;
+	font-size : 40px;
 	font-weight : bold;
 	margin : 0px 0px 0px 15px;
 }
 .fs_sep {
-	color: #2E3440;
-	font-size : 36px;
+	color: #ff9fc0;
+	font-size : 32px;
 	font-weight : bold;
 }
 
 .iconfolder1, .iconfolder2, .iconfolder3, .iconfolder4, .iconfolder5, .iconfolder6  {
-	font-family: Iosevka Nerd Font;
-	font-size : 32px;
+	font-family: "Iosevka Nerd Font", "Roboto Mono", monospace;
+	font-size : 28px;
 	font-weight : normal;
-	margin : 0px 0px 0px 75px;
+	margin : 0px 0px 0px 58px;
 }
 .iconfolder1 {
-	color: #BF616A;
+	color: #ff78a6;
 }
 .iconfolder2 {
-	color: #A3BE8C;
+	color: #ffdce7;
 }
 .iconfolder3 {
-	color: #EBCB8B;
+	color: #ffb1cb;
 }
 .iconfolder4 {
-	color: #81A1C1;
+	color: #ffd0de;
 }
 .iconfolder5 {
-	color: #B48EAD;
+	color: #ff9fc0;
 }
 .iconfolder6 {
-	color: #88C0D0;
+	color: #ffc9da;
 }
 
 .label_folder1, .label_folder2, .label_folder3, .label_folder4, .label_folder5, .label_folder6  {
-	font-size : 22px;
+	font-size : 18px;
 	font-weight : normal;
-	margin : 0px 0px 0px 30px;
+	margin : 0px 0px 0px 22px;
 }
 .label_folder1 {
-	color: #BF616A;
+	color: #ff78a6;
 }
 .label_folder2 {
-	color: #A3BE8C;
+	color: #ffdce7;
 }
 .label_folder3 {
-	color: #EBCB8B;
+	color: #ffb1cb;
 }
 .label_folder4 {
-	color: #81A1C1;
+	color: #ffd0de;
 }
 .label_folder5 {
-	color: #B48EAD;
+	color: #ff9fc0;
 }
 .label_folder6 {
-	color: #88C0D0;
+	color: #ffc9da;
 }
 
 /** EOF *************************************************/

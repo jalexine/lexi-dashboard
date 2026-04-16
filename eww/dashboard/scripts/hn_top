@@ -1,0 +1,191 @@
+#!/usr/bin/env python3
+
+import json
+import html
+import textwrap
+import sys
+import urllib.request
+from pathlib import Path
+
+
+CACHE_DIR = Path.home() / ".cache" / "eww" / "hn_top"
+STATE_FILE = CACHE_DIR / "stories.json"
+BEST_URL = "https://hacker-news.firebaseio.com/v0/beststories.json"
+ITEM_URL = "https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
+COUNT = 5
+LINE_WIDTH = 29
+MAX_LINES = 2
+REFRESH_SECONDS = 12 * 60 * 60
+
+
+def request_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "eww-hn-top/1.0"})
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        return json.load(resp)
+
+
+def load_state():
+    if not STATE_FILE.exists():
+        return []
+    try:
+        data = json.loads(STATE_FILE.read_text())
+        if isinstance(data, list):
+            return data
+    except Exception:
+        pass
+    return []
+
+
+def state_is_stale():
+    if not STATE_FILE.exists():
+        return True
+    try:
+        age = STATE_FILE.stat().st_mtime
+    except Exception:
+        return True
+    import time
+
+    return (time.time() - age) >= REFRESH_SECONDS
+
+
+def save_state(items):
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    STATE_FILE.write_text(json.dumps(items))
+
+
+def fetch_items():
+    ids = request_json(BEST_URL)[:20]
+    items = []
+    for item_id in ids:
+        try:
+            item = request_json(ITEM_URL.format(item_id=item_id))
+        except Exception:
+            continue
+        if not item or item.get("type") != "story":
+            continue
+        url = item.get("url") or f"https://news.ycombinator.com/item?id={item.get('id')}"
+        items.append(
+            {
+                "title": (item.get("title") or "Untitled").strip(),
+                "url": url,
+                "score": item.get("score") or 0,
+            }
+        )
+        if len(items) >= COUNT:
+            break
+    return items
+
+
+def ensure_items():
+    items = load_state()
+    if items and not state_is_stale():
+        return items
+    try:
+        items = fetch_items()
+        if items:
+            save_state(items)
+            return items
+    except Exception:
+        pass
+    if items:
+        return items
+    return [{"title": "Unable to load Hacker News", "url": "https://news.ycombinator.com/best", "score": 0}] * COUNT
+
+
+def refresh_items():
+    try:
+        items = fetch_items()
+        if items:
+            save_state(items)
+            return items
+    except Exception:
+        pass
+    return ensure_items()
+
+
+def item_at(index):
+    items = ensure_items()
+    while len(items) < COUNT:
+        items.append(items[-1] if items else {"title": "Unavailable", "url": "https://news.ycombinator.com/best", "score": 0})
+    return items[index]
+
+
+def display_title(title):
+    lines = textwrap.wrap(
+        title,
+        width=LINE_WIDTH,
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
+    if not lines:
+        return "Untitled"
+    if len(lines) <= MAX_LINES:
+        return "\n".join(lines)
+
+    kept = lines[:MAX_LINES]
+    if len(kept[-1]) > 3:
+        kept[-1] = kept[-1].rstrip(" .,;:!?") + "..."
+    else:
+        kept[-1] = kept[-1] + "..."
+    return "\n".join(kept)
+
+
+def title_lines(title):
+    lines = display_title(title).splitlines() or ["Untitled"]
+    if len(lines) < 2:
+        lines.append("")
+    return lines[:2]
+
+
+def display_with_score(title, score):
+    lines = title_lines(title)
+    suffix = f' <span foreground="#ff78a6">▲ {score}</span>'
+    if lines[1]:
+        lines[1] = f"{html.escape(lines[1])}{suffix}"
+        lines[0] = html.escape(lines[0])
+    else:
+        lines[0] = f"{html.escape(lines[0])}{suffix}"
+    return "\n".join(lines)
+
+
+def main():
+    if "--refresh" in sys.argv:
+        refresh_items()
+        print("ok")
+        return
+
+    if len(sys.argv) != 3:
+        sys.exit(1)
+
+    field = sys.argv[1]
+    try:
+        index = int(sys.argv[2]) - 1
+    except ValueError:
+        sys.exit(1)
+
+    if index < 0 or index >= COUNT:
+        sys.exit(1)
+
+    item = item_at(index)
+    if field == "--title":
+        print(item["title"])
+    elif field == "--display":
+        print(display_with_score(item["title"], item["score"]))
+    elif field == "--rank":
+        print(f"{index + 1:02d}")
+    elif field == "--line1":
+        print(title_lines(item["title"])[0])
+    elif field == "--line2":
+        print(title_lines(item["title"])[1])
+    elif field == "--url":
+        print(item["url"])
+    elif field == "--score":
+        print(item["score"])
+    elif field == "--score-label":
+        print(f"{item['score']} votes")
+    else:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

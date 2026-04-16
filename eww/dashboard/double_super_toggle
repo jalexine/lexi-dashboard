@@ -1,0 +1,30 @@
+#!/bin/sh
+
+STATE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}"
+STAMP_FILE="$STATE_DIR/eww_double_super.timestamp"
+LOCK_FILE="$STATE_DIR/eww_double_super.lock"
+THRESHOLD_MS=350
+TOGGLE="$HOME/.config/eww/dashboard/launch_dashboard"
+
+mkdir -p "$STATE_DIR"
+
+if [ -f "$LOCK_FILE" ]; then
+    exit 0
+fi
+
+touch "$LOCK_FILE"
+trap 'rm -f "$LOCK_FILE"' EXIT INT TERM
+
+now_ms="$(date +%s%3N)"
+last_ms=0
+
+if [ -f "$STAMP_FILE" ]; then
+    last_ms="$(cat "$STAMP_FILE" 2>/dev/null)"
+fi
+
+printf '%s\n' "$now_ms" > "$STAMP_FILE"
+
+if [ $((now_ms - last_ms)) -le "$THRESHOLD_MS" ] 2>/dev/null; then
+    rm -f "$STAMP_FILE"
+    "$TOGGLE"
+fi
